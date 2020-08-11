@@ -22,12 +22,21 @@ namespace SlideshowWallpaper {
 			private readonly Paint m_Paint = new Paint();
 			private readonly Handler m_Handler = new Handler();
 			private readonly bool m_Shuffle = false;
+			private readonly Action m_Update;
+
 			private Bitmap m_OldBitmap;
 			private Bitmap m_Bitmap;
-			private bool m_IsVisible;
-			private int m_CurrentBitmapIndex = -1;
 
-			public SlideshowEngine(SlideshowWallpaperService wall) : base(wall) { }
+			private int m_CurrentBitmapIndex = -1;
+			private DateTime m_CrossfadeStart;
+			private double m_CrossfadeProgress;
+			private bool m_IsVisible;
+			private float m_XOffset;
+			private float m_YOffset;
+
+			public SlideshowEngine(SlideshowWallpaperService wall) : base(wall) {
+				m_Update = () => DrawFrame(false, false);
+			}
 
 			private bool UpdateBitmap() {
 				string[] wallpapers = Directory.GetFiles(Path.Combine(Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryPictures).AbsolutePath, "Wallpapers"));
@@ -67,19 +76,18 @@ namespace SlideshowWallpaper {
 				DrawFrame(true, false);
 			}
 
-			private float m_XOffset;
-			private float m_YOffset;
-
 			public override void OnOffsetsChanged(float xOffset, float yOffset, float xOffsetStep, float yOffsetStep, int xPixelOffset, int yPixelOffset) {
 				m_XOffset = xOffset;
 				m_YOffset = yOffset;
 				DrawFrame(false, true);
 			}
 
-			private double m_CrossfadeProgress;
-			private DateTime m_CrossfadeStart;
-
 			private void DrawFrame(bool becameVisible, bool redraw) {
+				void scheduleUpdate(long millis) {
+					m_Handler.RemoveCallbacks(m_Update);
+					m_Handler.PostDelayed(m_Update, millis);
+				}
+
 				if (becameVisible) {
 					m_OldBitmap?.Recycle();
 					UpdateBitmap();
@@ -102,18 +110,19 @@ namespace SlideshowWallpaper {
 
 							DrawWallpaper(true);
 
-							m_Handler.PostDelayed(() => DrawFrame(false, false), 1000 / 60);
+							scheduleUpdate(1000 / 60);
 						}
 					} else {
 						if (UpdateBitmap()) {
 							m_CrossfadeProgress = 0.001;
 							m_CrossfadeStart = DateTime.Now;
 
-							m_Handler.PostDelayed(() => DrawFrame(false, false), 1000 / 60);
-						} else if (redraw) {
-							DrawWallpaper(false);
+							scheduleUpdate(1000 / 60);
 						} else {
-							m_Handler.PostDelayed(() => DrawFrame(false, false), 1000);
+							if (redraw) {
+								DrawWallpaper(false);
+							}
+							scheduleUpdate(1000);
 						}
 					}
 				} else {
