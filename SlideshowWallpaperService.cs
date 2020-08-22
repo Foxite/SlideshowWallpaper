@@ -94,6 +94,7 @@ namespace SlideshowWallpaper {
 					m_CrossfadeProgress = 0;
 					m_OldBitmap?.Recycle();
 					DrawWallpaper(false);
+					scheduleUpdate(1000);
 				} else if (m_IsVisible) {
 					if (m_CrossfadeProgress > 0) {
 						m_CrossfadeProgress = (DateTime.Now - m_CrossfadeStart).TotalSeconds;
@@ -105,6 +106,7 @@ namespace SlideshowWallpaper {
 
 							m_OldBitmap?.Recycle();
 							m_OldBitmap = null;
+							scheduleUpdate(1000);
 						} else {
 							m_OldBitmapPaint.SetARGB((int) ((1 - m_CrossfadeProgress) * 255), 255, 255, 255);
 
