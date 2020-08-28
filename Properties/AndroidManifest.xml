@@ -2,6 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="internalOnly" package="nl.dirkkok.android.wallpapers.slideshow" android:versionCode="2" android:versionName="0.1.1">
 	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 	<application android:label="SlideshowWallpaper" android:icon="@drawable/icon"></application>
-	<uses-sdk android:targetSdkVersion="26" android:minSdkVersion="16" />
+	<uses-sdk android:targetSdkVersion="28" android:minSdkVersion="16" />
 	<uses-feature android:name="android.software.live_wallpaper" />
 </manifest>
