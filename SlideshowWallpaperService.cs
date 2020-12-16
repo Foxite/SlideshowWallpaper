@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Android.App;
 using Android.Content;
@@ -39,17 +40,26 @@ namespace SlideshowWallpaper {
 			}
 
 			private bool UpdateBitmap() {
-				string[] wallpapers = Directory.GetFiles(Path.Combine(Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryPictures).AbsolutePath, "Wallpapers"));
+				string path = Path.Combine(Android.OS.Environment.GetExternalStoragePublicDirectory(Android.OS.Environment.DirectoryPictures).AbsolutePath, "Wallpapers");
+				List<string> wallpapers = new List<string>(Directory.GetFiles(path));
+
+				string auxiliaryFolder = Path.Combine(path, DesiredMinimumHeight > DesiredMinimumWidth ? "Portrait" : "Landscape");
+				if (Directory.Exists(auxiliaryFolder)) {
+					wallpapers.AddRange(Directory.GetFiles(auxiliaryFolder));
+				}
+
 				int key = (int) (DateTime.Now - new DateTime(2020, 1, 1)).TotalMinutes;
 				if (m_Shuffle) {
 					key = key.ToString().GetHashCode();
 				}
-				int newBitmapIndex = Math.Abs(key) % wallpapers.Length;
+				int newBitmapIndex = Math.Abs(key) % wallpapers.Count;
 				if (newBitmapIndex != m_CurrentBitmapIndex) {
 					int oldBitmapIndex = m_CurrentBitmapIndex;
 					m_CurrentBitmapIndex = newBitmapIndex;
 					m_OldBitmap = m_Bitmap;
-					m_Bitmap = BitmapFactory.DecodeFile(wallpapers[m_CurrentBitmapIndex]);
+					string pathName = wallpapers[m_CurrentBitmapIndex];
+					Android.Util.Log.Debug("SlideshowWallpaper", pathName);
+					m_Bitmap = BitmapFactory.DecodeFile(pathName);
 					return oldBitmapIndex != -1;
 				} else {
 					return false;
